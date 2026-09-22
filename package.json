@@ -9,6 +9,9 @@
   "scripts": {
     "test": "vitest run",
     "test:unit": "vitest run test",
+    "test:integration": "vitest run test/integration",
+    "check:secrets": "node scripts/check-no-secrets.mjs",
+    "validate:plugin": "node scripts/validate-plugin.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format:check": "prettier --check package.json tsconfig.json vitest.config.ts eslint.config.js wrangler.jsonc src test plugins",
