@@ -8,6 +8,7 @@ import {
   validateTenantOrigin,
 } from "../security/tenant-url.js";
 import { ConnectionRepository } from "../storage/repositories.js";
+import { disconnect } from "../operations/cleanup.js";
 
 export interface ConnectionProfile {
   connectionId: string;
@@ -103,14 +104,6 @@ export class ConnectionService {
   }
 
   async delete(userId: string): Promise<void> {
-    await this.dependencies.db
-      .prepare(
-        `UPDATE connections
-         SET active = 0, credential_ciphertext = NULL, credential_nonce = NULL,
-             key_version = NULL, updated_at = ?
-         WHERE user_id = ? AND active = 1`,
-      )
-      .bind(this.now(), userId)
-      .run();
+    await disconnect(this.dependencies.db, userId, this.now());
   }
 }

@@ -3,6 +3,7 @@ import { authenticateBearer } from "./oauth/bearer.js";
 import { routeOAuth } from "./oauth/router.js";
 import { FixedWindowRateLimiter } from "./policy/rate-limit.js";
 import { createDefaultToolServices } from "./tools/default-services.js";
+import { cleanupOperationalData } from "./operations/cleanup.js";
 
 export function handleHealth(environment: string): Response {
   return Response.json({ status: "ok", environment });
@@ -46,5 +47,14 @@ export default {
     }
 
     return routeOAuth(request, env);
+  },
+  scheduled(_controller, env, ctx): void {
+    const now = Math.floor(Date.now() / 1000);
+    ctx.waitUntil(
+      cleanupOperationalData(env.DB, now, {
+        auditBefore: now - 30 * 24 * 60 * 60,
+        idempotencyBefore: now - 24 * 60 * 60,
+      }).then(() => undefined),
+    );
   },
 } satisfies ExportedHandler<Env>;
