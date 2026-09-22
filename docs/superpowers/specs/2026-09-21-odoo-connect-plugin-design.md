@@ -76,7 +76,7 @@ The public GitHub repository contains:
 - Skills that guide safe Odoo workflows and tool selection.
 - Starter prompts, review cases, user documentation, support information, privacy policy, and terms.
 
-The initial plugin name is `odoo-connect`. The repository name is `odoo-connect-plugin`.
+The initial plugin name is `odoo-connect`. The repository name is `odoo-mcp`.
 
 ### 5.2 Cloudflare Worker
 

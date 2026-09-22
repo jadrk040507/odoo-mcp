@@ -14,7 +14,7 @@
 
 ## Global Constraints
 
-- Plugin identifier `odoo-connect`; public repository name `odoo-connect-plugin`; Apache-2.0 license.
+- Plugin identifier `odoo-connect`; public repository name `odoo-mcp`; Apache-2.0 license.
 - Use Odoo SaaS 19.4 native MCP at `https://<tenant>.odoo.com/mcp`; never rebuild the Odoo API.
 - Accept only canonical `https://*.odoo.com` root origins in v1; reject userinfo, fragments, unexpected ports, custom domains, unsafe DNS answers, and unsafe redirects.
 - One active Odoo connection per plugin user; API key must have `mcp` scope and must never reach model context, OAuth tokens, logs, or source control.
@@ -253,7 +253,7 @@
 
 Stop after local implementation and verification. Before any remote or billable action, present exact proposed commands and request authorization for:
 
-1. Creating `odoo-connect-plugin` on GitHub and pushing commits.
+1. Changing ownership or visibility of the existing `odoo-mcp` GitHub repository.
 2. Running `wrangler login`, creating D1 databases, or writing Cloudflare Secrets.
 3. Deploying staging, configuring a custom domain, or using real Odoo sandbox credentials.
 4. Deploying production, verifying the OpenAI domain, or submitting for public review.
