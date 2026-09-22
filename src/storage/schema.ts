@@ -23,6 +23,7 @@ export interface OAuthTokenRow {
 
 export interface ConfirmationIntentRow {
   id: string;
+  token_hash: string;
   connection_id: string;
   operation: string;
   change_json: string;
@@ -30,4 +31,14 @@ export interface ConfirmationIntentRow {
   idempotency_key: string;
   expires_at: number;
   consumed_at: number | null;
+}
+
+export interface IdempotencyResultRow {
+  idempotency_key: string;
+  connection_id: string;
+  operation: string;
+  state: "pending" | "succeeded" | "failed_retryable" | "failed_terminal";
+  result_json: string | null;
+  created_at: number;
+  updated_at: number;
 }

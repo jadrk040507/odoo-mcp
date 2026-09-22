@@ -2,6 +2,7 @@ import type {
   ConfirmationIntentRow,
   ConnectionRow,
   OAuthTokenRow,
+  IdempotencyResultRow,
 } from "./schema.js";
 
 export interface CreateConnection {
@@ -209,10 +210,61 @@ export class IntentRepository {
       .bind(now, tokenHash, now)
       .first<ConfirmationIntentRow>();
   }
+
+  find(tokenHash: string): Promise<ConfirmationIntentRow | null> {
+    return this.db
+      .prepare("SELECT * FROM confirmation_intents WHERE token_hash = ?")
+      .bind(tokenHash)
+      .first<ConfirmationIntentRow>();
+  }
 }
 
 export class IdempotencyRepository {
-  constructor(readonly db: D1Database) {}
+  constructor(private readonly db: D1Database) {}
+
+  async claim(input: {
+    idempotencyKey: string;
+    connectionId: string;
+    operation: string;
+    now: number;
+  }): Promise<boolean> {
+    const result = await this.db
+      .prepare(
+        `INSERT OR IGNORE INTO idempotency_results
+       (idempotency_key, connection_id, operation, state, created_at, updated_at)
+       VALUES (?, ?, ?, 'pending', ?, ?)`,
+      )
+      .bind(
+        input.idempotencyKey,
+        input.connectionId,
+        input.operation,
+        input.now,
+        input.now,
+      )
+      .run();
+    return result.meta.changes === 1;
+  }
+
+  find(idempotencyKey: string): Promise<IdempotencyResultRow | null> {
+    return this.db
+      .prepare("SELECT * FROM idempotency_results WHERE idempotency_key = ?")
+      .bind(idempotencyKey)
+      .first<IdempotencyResultRow>();
+  }
+
+  async complete(
+    idempotencyKey: string,
+    state: IdempotencyResultRow["state"],
+    resultJson: string | null,
+    now: number,
+  ): Promise<void> {
+    await this.db
+      .prepare(
+        "UPDATE idempotency_results SET state = ?, result_json = ?, updated_at = ? WHERE idempotency_key = ? AND state = 'pending'",
+      )
+      .bind(state, resultJson, now, idempotencyKey)
+      .run();
+  }
 }
 
 export class AuditRepository {

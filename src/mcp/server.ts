@@ -4,6 +4,7 @@ import { createMcpHandler } from "agents/mcp/server";
 import type { McpRequestContext } from "./context.js";
 import { registerAccountTools } from "../tools/account.js";
 import { registerReadTools } from "../tools/read.js";
+import { registerWriteTools } from "../tools/write.js";
 
 const allowedOrigins = [
   "chatgpt.com",
@@ -33,6 +34,9 @@ export function createServer(context: McpRequestContext): McpServer {
   }
   if (context.services.read) {
     registerReadTools(server, context, context.services.read);
+  }
+  if (context.services.write) {
+    registerWriteTools(server, context, context.services.write);
   }
   return server;
 }

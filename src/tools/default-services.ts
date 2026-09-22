@@ -7,6 +7,8 @@ import { decryptCredential } from "../security/crypto.js";
 import type { ConnectionRow } from "../storage/schema.js";
 import type { AccountToolService } from "./account.js";
 import { BusinessReadService, type ReadUpstream } from "./read.js";
+import { WriteService } from "../writes/confirm.js";
+import type { WriteOperation, WriteUpstream } from "../writes/types.js";
 
 function gatewayError(error: unknown): GatewayError {
   if (error instanceof GatewayError) return error;
@@ -59,10 +61,12 @@ async function activeConnection(
 }
 
 export async function createDefaultToolServices(
-  env: Pick<Env, "DB" | "CREDENTIAL_KEY_V1">,
+  env: Pick<Env, "DB" | "CREDENTIAL_KEY_V1" | "TOKEN_HASH_PEPPER">,
   auth: AuthContext,
   publicOrigin: string,
 ): Promise<McpServices> {
+  if (!env.TOKEN_HASH_PEPPER) throw new GatewayError("internal_error");
+  const tokenHashPepper = env.TOKEN_HASH_PEPPER;
   const account: AccountToolService = {
     profile: async () => {
       const row = await activeConnection(env.DB, auth.connectionId);
@@ -115,5 +119,49 @@ export async function createDefaultToolServices(
       }
     },
   };
-  return { db: env.DB, account, read: new BusinessReadService(upstream) };
+  const operationModel: Record<WriteOperation, string> = {
+    "contact.change": "res.partner",
+    "opportunity.change": "crm.lead",
+    "quotation.create": "sale.order",
+    "quotation.update": "sale.order",
+  };
+  const writes: WriteUpstream = {
+    read: async (operation, targetId) => {
+      const result = await upstream.callTool("search", {
+        model: operationModel[operation],
+        domain: [["id", "=", targetId]],
+        fields: [],
+        limit: 1,
+        offset: 0,
+      });
+      const records =
+        result && typeof result === "object"
+          ? (result as { records?: unknown }).records
+          : undefined;
+      return Array.isArray(records) &&
+        records[0] &&
+        typeof records[0] === "object"
+        ? (records[0] as Record<string, unknown>)
+        : null;
+    },
+    write: async (operation, change) => {
+      if (operation === "quotation.create") {
+        return upstream.callTool("create_records", {
+          model: operationModel[operation],
+          values: [change.changes],
+        });
+      }
+      return upstream.callTool("update_records", {
+        model: operationModel[operation],
+        ids: [change.targetId],
+        values: change.changes,
+      });
+    },
+  };
+  return {
+    db: env.DB,
+    account,
+    read: new BusinessReadService(upstream),
+    write: new WriteService(env.DB, tokenHashPepper, writes),
+  };
 }
