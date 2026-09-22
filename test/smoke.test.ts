@@ -1,9 +1,8 @@
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
-
 import { describe, expect, it } from "vitest";
 
-const root = resolve(import.meta.dirname, "..");
+import iconSource from "../plugins/odoo-connect/assets/icon.svg?raw";
+import manifestSource from "../plugins/odoo-connect/.codex-plugin/plugin.json?raw";
+import localMcpSource from "../plugins/odoo-connect/.mcp.local.json?raw";
 
 describe("worker scaffold", () => {
   it("serves environment health without exposing configuration", async () => {
@@ -18,18 +17,10 @@ describe("worker scaffold", () => {
   });
 
   it("publishes valid local plugin metadata without a public MCP endpoint", async () => {
-    const manifest = JSON.parse(
-      await readFile(
-        resolve(root, "plugins/odoo-connect/.codex-plugin/plugin.json"),
-        "utf8",
-      ),
-    ) as Record<string, unknown>;
-    const localMcp = JSON.parse(
-      await readFile(
-        resolve(root, "plugins/odoo-connect/.mcp.local.json"),
-        "utf8",
-      ),
-    ) as { mcpServers: { "odoo-connect": { type: string; url: string } } };
+    const manifest = JSON.parse(manifestSource) as Record<string, unknown>;
+    const localMcp = JSON.parse(localMcpSource) as {
+      mcpServers: { "odoo-connect": { type: string; url: string } };
+    };
 
     expect(manifest).toMatchObject({
       name: "odoo-connect",
@@ -44,8 +35,6 @@ describe("worker scaffold", () => {
       type: "http",
       url: "http://127.0.0.1:8787/mcp",
     });
-    await expect(
-      readFile(resolve(root, "plugins/odoo-connect/assets/icon.svg"), "utf8"),
-    ).resolves.toContain("<svg");
+    expect(iconSource).toContain("<svg");
   });
 });

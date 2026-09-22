@@ -9,7 +9,12 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["./worker-configuration.d.ts", "node", "vitest/globals"]
+    "types": [
+      "./worker-configuration.d.ts",
+      "@cloudflare/vitest-plugin/types",
+      "node",
+      "vitest/globals"
+    ]
   },
   "include": ["src", "test", "vitest.config.ts", "worker-configuration.d.ts"]
 }
