@@ -10,6 +10,7 @@ export default {
       return handleHealth(env.ENVIRONMENT);
     }
 
-    return Response.json({ error: "not_found" }, { status: 404 });
+    return routeOAuth(request, env);
   },
 } satisfies ExportedHandler<Env>;
+import { routeOAuth } from "./oauth/router.js";
