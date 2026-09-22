@@ -19,6 +19,35 @@ const expectedTools = [
 ].sort();
 
 describe("public account/read tool contract", () => {
+  it("does not advertise business reads without the read scope", () => {
+    const context = {
+      auth: {
+        userId: "user-1",
+        connectionId: "connection-1",
+        grantId: "grant-1",
+        scopes: [],
+        tokenId: "token-1",
+      },
+      requestId: "request-no-scope",
+      services: {
+        db: env.DB,
+        read: {
+          search: async () => ({ records: [], truncated: false }),
+          getRecord: async () => ({ record: null }),
+          aggregate: async () => ({ groups: [], truncated: false }),
+        } as unknown as BusinessReadService,
+      },
+    } satisfies McpRequestContext;
+    const registered = (
+      createServer(context) as unknown as {
+        _registeredTools: Record<string, { enabled: boolean }>;
+      }
+    )._registeredTools;
+    expect(
+      Object.entries(registered).filter(([, tool]) => tool.enabled),
+    ).toHaveLength(0);
+  });
+
   it("registers exactly the approved inventory with safe annotations", async () => {
     const account = {
       profile: async () => ({
@@ -48,7 +77,15 @@ describe("public account/read tool contract", () => {
         tokenId: "token-1",
       },
       requestId: "request-1",
-      services: { db: env.DB, account, read },
+      services: {
+        db: env.DB,
+        account,
+        read,
+        write: {
+          preview: async () => ({}),
+          confirm: async () => ({}),
+        },
+      },
     };
     const server = createServer(context);
     const transport = server.server;

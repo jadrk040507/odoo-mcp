@@ -1,4 +1,5 @@
 import type { McpServer } from "@modelcontextprotocol/server";
+import { z } from "zod";
 
 import { toMcpError } from "../errors.js";
 import type { McpRequestContext } from "../mcp/context.js";
@@ -54,6 +55,7 @@ export function registerAccountTools(
     "disconnect_odoo",
     {
       description: "Begin the explicit Odoo disconnection flow.",
+      inputSchema: z.object({ confirmed: z.literal(true) }),
       annotations: {
         readOnlyHint: false,
         destructiveHint: true,

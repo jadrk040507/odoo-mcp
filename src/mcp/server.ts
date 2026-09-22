@@ -32,10 +32,10 @@ export function createServer(context: McpRequestContext): McpServer {
   if (context.services.account) {
     registerAccountTools(server, context, context.services.account);
   }
-  if (context.services.read) {
+  if (context.services.read && context.auth.scopes.includes("odoo.read")) {
     registerReadTools(server, context, context.services.read);
   }
-  if (context.services.write) {
+  if (context.services.write && context.auth.scopes.includes("odoo.write")) {
     registerWriteTools(server, context, context.services.write);
   }
   return server;

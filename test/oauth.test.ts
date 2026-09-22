@@ -55,6 +55,65 @@ beforeEach(async () => {
 });
 
 describe("OAuth metadata and routing", () => {
+  it("connects the submitted tenant and redirects with an authorization code", async () => {
+    const clientId = "https://client.example/metadata.json";
+    const redirectUri = "https://client.example/callback";
+    const session = await createAuthorizationSession(
+      {
+        userId: "browser-user",
+        state: "state-1",
+        clientId,
+        redirectUri,
+        resource: `${origin}/mcp`,
+        scope: "odoo.read",
+        codeChallenge: "c".repeat(43),
+        expiresAt: 1_500,
+      },
+      pepper,
+    );
+    let connectedSecret = "";
+    const response = await routeOAuth(
+      new Request(`${origin}/authorize/complete`, {
+        method: "POST",
+        headers: {
+          cookie: `odoo_oauth_session=${session}`,
+          "content-type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          origin: "https://acme.odoo.com",
+          api_key: "ODOO_TEST_SECRET",
+        }),
+      }),
+      { DB: env.DB, PUBLIC_ORIGIN: origin, TOKEN_HASH_PEPPER: pepper },
+      {
+        now: () => 1_100,
+        connect: async (userId, tenantOrigin, apiKey) => {
+          expect(userId).toBe("browser-user");
+          expect(tenantOrigin).toBe("https://acme.odoo.com");
+          connectedSecret = apiKey;
+          await new ConnectionRepository(env.DB).create({
+            id: "browser-connection",
+            userId,
+            tenantOrigin,
+            tenantHash: "browser-tenant",
+            ciphertext: "encrypted",
+            nonce: "nonce",
+            keyVersion: 1,
+            now: 1_100,
+          });
+          return "browser-connection";
+        },
+      },
+    );
+    expect(response.status).toBe(302);
+    const location = new URL(response.headers.get("location")!);
+    expect(location.origin + location.pathname).toBe(redirectUri);
+    expect(location.searchParams.get("state")).toBe("state-1");
+    expect(location.searchParams.get("iss")).toBe(origin);
+    expect(location.searchParams.get("code")).toBeTruthy();
+    expect(connectedSecret).toBe("ODOO_TEST_SECRET");
+  });
+
   it("publishes exact OAuth 2.1 metadata and no DCR endpoint", async () => {
     expect(protectedResourceMetadata(origin)).toEqual({
       resource: `${origin}/mcp`,

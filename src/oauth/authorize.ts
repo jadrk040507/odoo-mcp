@@ -6,6 +6,7 @@ export interface AuthorizationRedirectInput {
 }
 
 export interface AuthorizationSession {
+  userId?: string;
   state: string;
   clientId: string;
   redirectUri: string;

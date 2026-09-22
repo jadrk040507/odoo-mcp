@@ -9,6 +9,7 @@ import type { AccountToolService } from "./account.js";
 import { BusinessReadService, type ReadUpstream } from "./read.js";
 import { WriteService } from "../writes/confirm.js";
 import type { WriteOperation, WriteUpstream } from "../writes/types.js";
+import { disconnect } from "../operations/cleanup.js";
 
 function gatewayError(error: unknown): GatewayError {
   if (error instanceof GatewayError) return error;
@@ -63,7 +64,6 @@ async function activeConnection(
 export async function createDefaultToolServices(
   env: Pick<Env, "DB" | "CREDENTIAL_KEY_V1" | "TOKEN_HASH_PEPPER">,
   auth: AuthContext,
-  publicOrigin: string,
 ): Promise<McpServices> {
   if (!env.TOKEN_HASH_PEPPER) throw new GatewayError("internal_error");
   const tokenHashPepper = env.TOKEN_HASH_PEPPER;
@@ -84,9 +84,10 @@ export async function createDefaultToolServices(
       reads: true,
       previewedWrites: auth.scopes.includes("odoo.write"),
     }),
-    disconnect: async () => ({
-      confirmationUrl: `${publicOrigin}/connection/delete`,
-    }),
+    disconnect: async () => {
+      await disconnect(env.DB, auth.userId, Math.floor(Date.now() / 1000));
+      return { disconnected: true };
+    },
   };
 
   const upstream: ReadUpstream = {

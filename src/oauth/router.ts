@@ -2,15 +2,24 @@ import {
   authorizationServerMetadata,
   protectedResourceMetadata,
 } from "./metadata.js";
-import { createAuthorizationSession } from "./authorize.js";
+import {
+  buildAuthorizationRedirect,
+  createAuthorizationSession,
+  readAuthorizationSession,
+} from "./authorize.js";
 import { resolveCimd, type PublicFetcher } from "./cimd.js";
 import { verifyClientAssertion } from "./client-assertion.js";
 import { revokeToken } from "./revoke.js";
-import { exchangeAuthorizationCode, refreshAccessToken } from "./token.js";
+import {
+  exchangeAuthorizationCode,
+  issueAuthorizationCode,
+  refreshAccessToken,
+} from "./token.js";
 import { OAuthRepository } from "../storage/repositories.js";
 import { CloudflareDnsResolver } from "../security/tenant-url.js";
 import { publicHttpsFetch } from "../security/public-fetch.js";
 import { oauthError } from "../http/forms.js";
+import { ConnectionService } from "../connection/service.js";
 
 function json(value: unknown, status = 200): Response {
   return Response.json(value, {
@@ -23,11 +32,27 @@ export interface OAuthRouterEnv {
   DB: D1Database;
   PUBLIC_ORIGIN?: string;
   TOKEN_HASH_PEPPER?: string;
+  CREDENTIAL_KEY_V1?: string;
 }
 
 export interface OAuthRouterDependencies {
   fetchPublic?: PublicFetcher;
   now?: () => number;
+  connect?: (
+    userId: string,
+    tenantOrigin: string,
+    apiKey: string,
+  ) => Promise<string>;
+}
+
+function cookie(request: Request, name: string): string | undefined {
+  return request.headers
+    .get("cookie")
+    ?.split(";")
+    .map((part) => part.trim().split("="))
+    .find(([key]) => key === name)
+    ?.slice(1)
+    .join("=");
 }
 
 function publicFetcher(): PublicFetcher {
@@ -122,6 +147,7 @@ export async function routeOAuth(
       if (!env.TOKEN_HASH_PEPPER) return oauthError("server_error", 500);
       const session = await createAuthorizationSession(
         {
+          userId: crypto.randomUUID(),
           state,
           clientId,
           redirectUri,
@@ -133,7 +159,7 @@ export async function routeOAuth(
         env.TOKEN_HASH_PEPPER,
       );
       return new Response(
-        "<!doctype html><title>Connect Odoo</title><h1>Connect Odoo</h1>",
+        '<!doctype html><title>Connect Odoo</title><h1>Connect Odoo</h1><form method="post" action="/authorize/complete"><label>Odoo URL <input name="origin" type="url" required></label><label>API key <input name="api_key" type="password" autocomplete="off" required></label><button>Connect</button></form>',
         {
           headers: {
             "content-type": "text/html; charset=utf-8",
@@ -142,6 +168,64 @@ export async function routeOAuth(
           },
         },
       );
+    } catch {
+      return oauthError("invalid_request");
+    }
+  }
+  if (request.method === "POST" && path === "/authorize/complete") {
+    if (!env.TOKEN_HASH_PEPPER) return oauthError("server_error", 500);
+    try {
+      const sessionValue = cookie(request, "odoo_oauth_session");
+      if (!sessionValue) throw new Error("invalid_request");
+      const session = await readAuthorizationSession(
+        sessionValue,
+        env.TOKEN_HASH_PEPPER,
+        now,
+      );
+      if (!session.userId) throw new Error("invalid_request");
+      const form = await request.formData();
+      const tenantOrigin = form.get("origin");
+      const apiKey = form.get("api_key");
+      if (
+        typeof tenantOrigin !== "string" ||
+        typeof apiKey !== "string" ||
+        !apiKey
+      ) {
+        throw new Error("invalid_request");
+      }
+      const connect =
+        dependencies.connect ??
+        (async (userId: string, requestedOrigin: string, secret: string) => {
+          if (!env.CREDENTIAL_KEY_V1) throw new Error("server_error");
+          const profile = await new ConnectionService({
+            db: env.DB,
+            keys: {
+              currentVersion: 1,
+              versions: { 1: env.CREDENTIAL_KEY_V1 },
+            },
+          }).verifyAndSave(userId, requestedOrigin, secret);
+          return profile.connectionId;
+        });
+      const connectionId = await connect(session.userId, tenantOrigin, apiKey);
+      const code = await issueAuthorizationCode(
+        env.DB,
+        {
+          userId: session.userId,
+          connectionId,
+          clientId: session.clientId,
+          redirectUri: session.redirectUri,
+          resource: session.resource,
+          scope: session.scope,
+          codeChallenge: session.codeChallenge,
+        },
+        now,
+      );
+      return buildAuthorizationRedirect({
+        redirectUri: session.redirectUri,
+        code,
+        state: session.state,
+        issuer: origin,
+      });
     } catch {
       return oauthError("invalid_request");
     }

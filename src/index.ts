@@ -35,11 +35,7 @@ export default {
         return serveMcpRequest(request, env, ctx, {
           auth,
           requestId: crypto.randomUUID(),
-          services: await createDefaultToolServices(
-            env,
-            auth,
-            env.PUBLIC_ORIGIN ?? url.origin,
-          ),
+          services: await createDefaultToolServices(env, auth),
         });
       } catch {
         return routeOAuth(request, env);
