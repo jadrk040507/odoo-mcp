@@ -117,6 +117,20 @@ export class OAuthRepository {
       .bind(tokenHash, now)
       .first<OAuthTokenRow>();
   }
+
+  async consumeClientAssertion(
+    clientId: string,
+    jtiHash: string,
+    expiresAt: number,
+  ): Promise<boolean> {
+    const result = await this.db
+      .prepare(
+        "INSERT OR IGNORE INTO client_assertion_jti (client_id, jti_hash, expires_at) VALUES (?, ?, ?)",
+      )
+      .bind(clientId, jtiHash, expiresAt)
+      .run();
+    return result.meta.changes === 1;
+  }
 }
 
 export class IntentRepository {

@@ -114,6 +114,15 @@ describe("D1 repositories", () => {
     expect(await repository.consume("intent-hash", 151)).toBeNull();
   });
 
+  it("allows exactly one atomic client-assertion JTI consumer", async () => {
+    const repository = new OAuthRepository(env.DB);
+    const results = await Promise.all([
+      repository.consumeClientAssertion("client-1", "jti-hash", 200),
+      repository.consumeClientAssertion("client-1", "jti-hash", 200),
+    ]);
+    expect(results.sort()).toEqual([false, true]);
+  });
+
   it("deletes expired tokens and intents", async () => {
     const result = await cleanupExpired(env.DB, 300);
     expect(result).toEqual({ tokens: 0, intents: 0 });
