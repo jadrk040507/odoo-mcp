@@ -2,6 +2,7 @@ import { serveMcpRequest } from "./mcp/server.js";
 import { authenticateBearer } from "./oauth/bearer.js";
 import { routeOAuth } from "./oauth/router.js";
 import { FixedWindowRateLimiter } from "./policy/rate-limit.js";
+import { createDefaultToolServices } from "./tools/default-services.js";
 
 export function handleHealth(environment: string): Response {
   return Response.json({ status: "ok", environment });
@@ -33,7 +34,11 @@ export default {
         return serveMcpRequest(request, env, ctx, {
           auth,
           requestId: crypto.randomUUID(),
-          services: { db: env.DB },
+          services: await createDefaultToolServices(
+            env,
+            auth,
+            env.PUBLIC_ORIGIN ?? url.origin,
+          ),
         });
       } catch {
         return routeOAuth(request, env);

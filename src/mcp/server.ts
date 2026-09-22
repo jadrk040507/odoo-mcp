@@ -2,6 +2,8 @@ import { McpServer } from "@modelcontextprotocol/server";
 import { createMcpHandler } from "agents/mcp/server";
 
 import type { McpRequestContext } from "./context.js";
+import { registerAccountTools } from "../tools/account.js";
+import { registerReadTools } from "../tools/read.js";
 
 const allowedOrigins = [
   "chatgpt.com",
@@ -26,6 +28,12 @@ export function createServer(context: McpRequestContext): McpServer {
     async () => ({ content: [] }),
   );
   placeholder.disable();
+  if (context.services.account) {
+    registerAccountTools(server, context, context.services.account);
+  }
+  if (context.services.read) {
+    registerReadTools(server, context, context.services.read);
+  }
   return server;
 }
 
