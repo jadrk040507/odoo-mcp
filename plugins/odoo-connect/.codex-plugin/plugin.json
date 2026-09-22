@@ -1,7 +1,7 @@
 {
   "name": "odoo-connect",
-  "version": "0.1.0",
-  "description": "Connect ChatGPT and Codex to Odoo SaaS through a safe OAuth-protected MCP gateway.",
+  "version": "0.1.0+codex.20260922145048",
+  "description": "Community-developed plugin for Odoo, connecting Odoo SaaS securely to ChatGPT and Codex.",
   "author": {
     "name": "odoo-plugin",
     "email": "jadrk040507@gmail.com",
@@ -13,22 +13,22 @@
   "keywords": ["odoo", "mcp", "crm", "sales", "invoicing"],
   "skills": "./skills/",
   "interface": {
-    "displayName": "Odoo Connect for ChatGPT & Codex",
-    "shortDescription": "Use Odoo SaaS safely from ChatGPT and Codex.",
-    "longDescription": "Connect one Odoo SaaS tenant and use curated contact, CRM, sales, and invoicing workflows through an OAuth-protected MCP gateway.",
-    "developerName": "odoo-plugin",
+    "displayName": "Odoo",
+    "shortDescription": "Community-developed plugin for Odoo, built for secure everyday work.",
+    "longDescription": "An independent, community-developed connector for Odoo SaaS. Work with contacts, CRM opportunities, quotations, sales orders, and invoices from ChatGPT and Codex through a secure OAuth-protected MCP gateway. Not affiliated with or endorsed by Odoo S.A.",
+    "developerName": "Jadrk040507",
     "category": "Productivity",
     "capabilities": ["Interactive", "Write"],
     "websiteURL": "https://github.com/jadrk040507/odoo-mcp",
     "privacyPolicyURL": "https://github.com/jadrk040507/odoo-mcp/blob/main/docs/privacy.md",
     "termsOfServiceURL": "https://github.com/jadrk040507/odoo-mcp/blob/main/docs/terms.md",
     "defaultPrompt": [
-      "Find my newest CRM opportunities.",
-      "Show overdue customer invoices.",
-      "Preview an update to an Odoo contact."
+      "Show my newest CRM opportunities in Odoo.",
+      "Find overdue customer invoices in Odoo.",
+      "Preview a safe update to an Odoo contact."
     ],
     "brandColor": "#714B67",
-    "composerIcon": "./assets/icon.svg",
-    "logo": "./assets/icon.svg"
+    "composerIcon": "./assets/odoo-logo.svg",
+    "logo": "./assets/odoo-logo.svg"
   }
 }

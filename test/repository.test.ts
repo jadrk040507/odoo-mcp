@@ -11,6 +11,7 @@ import ci from "../.github/workflows/ci.yml?raw";
 import staging from "../.github/workflows/deploy-staging.yml?raw";
 import production from "../.github/workflows/deploy-production.yml?raw";
 import manifestRaw from "../plugins/odoo-connect/.codex-plugin/plugin.json?raw";
+import officialLogo from "../plugins/odoo-connect/assets/odoo-logo.svg?raw";
 
 describe("public repository contract", () => {
   it("ships required public policies without placeholders", () => {
@@ -64,5 +65,35 @@ describe("public repository contract", () => {
     expect(manifest.homepage).toBe("https://github.com/jadrk040507/odoo-mcp");
     expect(manifest.mcpServers).toBeUndefined();
     expect(checklist).toContain("BLOCKED: authorized staging origin");
+  });
+
+  it("presents the approved community Odoo branding and usage guidance", () => {
+    const manifest = JSON.parse(manifestRaw) as {
+      description: string;
+      interface: {
+        displayName: string;
+        shortDescription: string;
+        longDescription: string;
+        composerIcon: string;
+        logo: string;
+        defaultPrompt: string[];
+      };
+    };
+    expect(manifest.interface.displayName).toBe("Odoo");
+    expect(manifest.description).toContain(
+      "Community-developed plugin for Odoo",
+    );
+    expect(manifest.interface.shortDescription).toContain(
+      "Community-developed plugin for Odoo",
+    );
+    expect(manifest.interface.longDescription).toMatch(
+      /independent|not affiliated/iu,
+    );
+    expect(manifest.interface.logo).toBe("./assets/odoo-logo.svg");
+    expect(manifest.interface.composerIcon).toBe("./assets/odoo-logo.svg");
+    expect(manifest.interface.defaultPrompt).toHaveLength(3);
+    expect(officialLogo).toContain('viewBox="0 0 919 495"');
+    expect(readme).toContain("## Example uses");
+    expect(readme).toContain("## Official references");
   });
 });

@@ -24,9 +24,9 @@ describe("worker scaffold", () => {
 
     expect(manifest).toMatchObject({
       name: "odoo-connect",
-      version: "0.1.0",
       license: "Apache-2.0",
     });
+    expect(manifest.version).toMatch(/^0\.1\.0(?:\+codex\.\d{14})?$/u);
     expect(manifest).not.toHaveProperty("mcpServers");
     expect(
       (manifest.interface as { defaultPrompt: string[] }).defaultPrompt,
