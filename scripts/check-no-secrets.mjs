@@ -23,8 +23,7 @@ for (const file of files) {
     content.includes(fixtureSecret)
   )
     violations.push(`${file}: ODOO_TEST_SECRET value`);
-  if (file === ".dev.vars")
-    violations.push(`${file}: tracked local secrets`);
+  if (file === ".dev.vars") violations.push(`${file}: tracked local secrets`);
 }
 if (violations.length) {
   console.error(violations.join("\n"));

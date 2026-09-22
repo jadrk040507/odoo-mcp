@@ -7,8 +7,8 @@
     "email": "jadrk040507@gmail.com",
     "url": "https://github.com/jadrk040507"
   },
-  "homepage": "https://github.com/jadrk040507/odoo-connect-plugin",
-  "repository": "https://github.com/jadrk040507/odoo-connect-plugin",
+  "homepage": "https://github.com/jadrk040507/odoo-mcp",
+  "repository": "https://github.com/jadrk040507/odoo-mcp",
   "license": "Apache-2.0",
   "keywords": ["odoo", "mcp", "crm", "sales", "invoicing"],
   "skills": "./skills/",
@@ -19,6 +19,9 @@
     "developerName": "odoo-plugin",
     "category": "Productivity",
     "capabilities": ["Interactive", "Write"],
+    "websiteURL": "https://github.com/jadrk040507/odoo-mcp",
+    "privacyPolicyURL": "https://github.com/jadrk040507/odoo-mcp/blob/main/docs/privacy.md",
+    "termsOfServiceURL": "https://github.com/jadrk040507/odoo-mcp/blob/main/docs/terms.md",
     "defaultPrompt": [
       "Find my newest CRM opportunities.",
       "Show overdue customer invoices.",

@@ -41,12 +41,14 @@
 ### Task 1: Reproducible Worker and plugin scaffold
 
 **Files:**
+
 - Create: `package.json`, `package-lock.json`, `tsconfig.json`, `eslint.config.js`, `vitest.config.ts`, `wrangler.jsonc`, `.gitignore`, `.dev.vars.example`, `LICENSE`, `src/index.ts`, `test/smoke.test.ts`
 - Create via plugin-creator: `plugins/odoo-connect/.codex-plugin/plugin.json`, `plugins/odoo-connect/skills/odoo-connect/SKILL.md`, `plugins/odoo-connect/assets/`
 - Create: `plugins/odoo-connect/.mcp.local.json`
 - Generate: `worker-configuration.d.ts`
 
 **Interfaces:**
+
 - Produces `Env` from `wrangler types`, D1 binding `DB`, secrets `CREDENTIAL_KEY_V1`, `TOKEN_HASH_PEPPER`, `AUDIT_HASH_KEY`, variables `PUBLIC_ORIGIN`, `ENVIRONMENT`, `ODOO_TIMEOUT_MS`.
 - Produces default Worker export `ExportedHandler<Env>`. Local-only `.mcp.local.json` points to `http://127.0.0.1:8787/mcp` and is not referenced by the public manifest. Task 12 creates public `.mcp.json` only after `PUBLIC_ORIGIN` contains the authorized HTTPS staging origin.
 
@@ -60,9 +62,11 @@
 ### Task 2: D1 schema, typed repositories, and safe telemetry
 
 **Files:**
+
 - Create: `migrations/0001_initial.sql`, `src/storage/schema.ts`, `src/storage/repositories.ts`, `src/observability/audit.ts`, `src/observability/redact.ts`, `test/storage.test.ts`, `test/redaction.test.ts`
 
 **Interfaces:**
+
 - Produces `ConnectionRepository`, `OAuthRepository`, `IntentRepository`, `IdempotencyRepository`, `AuditRepository`, each accepting `D1Database` and using `.prepare(...).bind(...)` only.
 - Produces `audit(env, event: AuditEvent): Promise<void>` where `AuditEvent` contains request ID, pseudonymous tenant ID, tool, duration, status class, error category, timestamp; no arbitrary payload field.
 - Tables: `users`, `connections`, `oauth_grants`, `oauth_codes`, `oauth_tokens`, `client_assertion_jti`, `confirmation_intents`, `idempotency_results`, `audit_events`, all `STRICT`, with foreign keys and expiry indexes.
@@ -77,9 +81,11 @@
 ### Task 3: Tenant URL and outbound-request security boundary
 
 **Files:**
+
 - Create: `src/security/ip.ts`, `src/security/tenant-url.ts`, `src/security/safe-fetch.ts`, `test/tenant-url.test.ts`, `test/safe-fetch.test.ts`
 
 **Interfaces:**
+
 - Produces `DnsResolver.resolve(hostname: string): Promise<{addresses:string[]; ttl:number}>`.
 - Produces `validateTenantOrigin(input: string, resolver: DnsResolver): Promise<{origin:string; host:string}>`.
 - Produces `safeTenantFetch(origin, path, init, deps): Promise<Response>` with no automatic redirects, per-attempt DNS validation, allowed-origin enforcement, 10 s default timeout, and 1 MiB bounded response reader.
@@ -94,9 +100,11 @@
 ### Task 4: Credential encryption and CIMD `private_key_jwt`
 
 **Files:**
+
 - Create: `src/security/crypto.ts`, `src/oauth/cimd.ts`, `src/oauth/client-assertion.ts`, `test/crypto.test.ts`, `test/cimd.test.ts`, `test/client-assertion.test.ts`
 
 **Interfaces:**
+
 - Produces `encryptCredential(connectionId, plaintext, keys): Promise<EncryptedSecret>` and `decryptCredential(connectionId, value, keys): Promise<string>`; `EncryptedSecret={ciphertext,nonce,keyVersion}` uses base64url.
 - Produces `resolveCimd(clientId, fetcher): Promise<CimdClient>` with exact redirect URIs, `jwks`/`jwks_uri`, supported `private_key_jwt`, 5 KiB limit, 10 s timeout, no secrets/private JWKs.
 - Produces `verifyClientAssertion(form, client, issuer, repository, now): Promise<void>` validating `iss=sub=client_id`, exact token endpoint `aud`, approved asymmetric algorithm, signature, max five-minute lifetime, `exp`/`iat`/`nbf`, unique `jti`, and atomic replay insertion.
@@ -111,9 +119,11 @@
 ### Task 5: OAuth 2.1 authorization server
 
 **Files:**
+
 - Create: `src/oauth/metadata.ts`, `src/oauth/authorize.ts`, `src/oauth/token.ts`, `src/oauth/revoke.ts`, `src/oauth/bearer.ts`, `src/oauth/router.ts`, `src/http/forms.ts`, `test/oauth.test.ts`
 
 **Interfaces:**
+
 - Routes: `/.well-known/oauth-protected-resource/mcp`, `/.well-known/oauth-authorization-server`, `/authorize`, `/token`, `/revoke`.
 - Produces `authenticateBearer(request, env): Promise<AuthContext>` where `AuthContext={userId,connectionId,grantId,scopes,tokenId}`.
 - Authorization code lifetime 5 minutes; access token 1 hour; refresh token 30 days; S256 only; tokens generated with 32 random bytes, returned once, stored as `SHA-256(token || pepper)`.
@@ -129,9 +139,11 @@
 ### Task 6: Native Odoo MCP client and connection lifecycle
 
 **Files:**
+
 - Create: `src/odoo/types.ts`, `src/odoo/client.ts`, `src/odoo/capabilities.ts`, `src/connection/service.ts`, `src/connection/routes.ts`, `test/fixtures/odoo/*.json`, `test/odoo-client.test.ts`, `test/connection.test.ts`
 
 **Interfaces:**
+
 - `OdooClient.initialize(): Promise<OdooProfile>`, `listTools(): Promise<UpstreamTool[]>`, `callTool(name,args): Promise<unknown>`, `close(): Promise<void>` over SDK v2 Web Standard Streamable HTTP at `${origin}/mcp` with bearer key.
 - `ConnectionService.verifyAndSave(userId, origin, apiKey): Promise<ConnectionProfile>` verifies initialization, identity, company context, required tools, and scope behavior before encryption.
 - Routes: `GET/POST /connect`, `GET/POST /connection/replace`, `GET /connection/status`, `POST /connection/delete` with CSRF tokens and no-store responses.
@@ -147,9 +159,11 @@
 ### Task 7: Stable errors, request policy, and MCP server shell
 
 **Files:**
+
 - Create: `src/errors.ts`, `src/policy/rate-limit.ts`, `src/mcp/context.ts`, `src/mcp/server.ts`, `src/mcp/result.ts`, `test/errors.test.ts`, `test/mcp-contract.test.ts`
 
 **Interfaces:**
+
 - `GatewayErrorCode` exactly matches 11 spec categories; `toMcpError(error,requestId)` returns safe action plus correlation ID.
 - `createServer(context: McpRequestContext): McpServer`; context contains authenticated IDs and services, never plaintext Odoo key.
 - `createMcpHandler` serves stateless Streamable HTTP `/mcp`; all tools carry accurate read-only/destructive/idempotent/open-world annotations.
@@ -164,9 +178,11 @@
 ### Task 8: Account, capability, and bounded read tools
 
 **Files:**
+
 - Create: `src/tools/schemas.ts`, `src/tools/account.ts`, `src/tools/read.ts`, `src/tools/field-policy.ts`, `test/account-tools.test.ts`, `test/read-tools.test.ts`
 
 **Interfaces:**
+
 - Registers `get_connection_profile`, `list_capabilities`, `disconnect_odoo`, `search_contacts`, `search_crm_opportunities`, `search_quotations_and_orders`, `search_invoices`, `get_business_record`, `aggregate_business_records`.
 - Shared `PageInput={limit?:number,cursor?:string}` clamps limit to 1..50; opaque cursor encodes validated offset and query digest; each domain has an explicit model and field allowlist.
 - Read adapter uses only upstream Get Models, Get Fields, Search, Read Group capabilities and returns normalized structured content.
@@ -181,9 +197,11 @@
 ### Task 9: Preview and confirmation write pipeline
 
 **Files:**
+
 - Create: `src/writes/types.ts`, `src/writes/normalize.ts`, `src/writes/preview.ts`, `src/writes/confirm.ts`, `src/tools/write.ts`, `test/write-tools.test.ts`, `test/write-concurrency.test.ts`
 
 **Interfaces:**
+
 - Registers preview/confirm pairs for contact change, opportunity change, and quotation creation/update.
 - Preview output: `{intentToken,expiresAt,operation,summary,changes,warnings}`; token is random and stored only as hash.
 - Stored intent: connection ID, operation, normalized-change JSON, SHA-256 digest, expiry (10 minutes), idempotency key, consumed timestamp. Confirm input: `{intentToken:string,confirmed:true}` only.
@@ -199,9 +217,11 @@
 ### Task 10: Disconnect, revocation, retention, and key rotation operations
 
 **Files:**
+
 - Create: `src/operations/cleanup.ts`, `src/operations/key-rotation.ts`, `test/lifecycle.test.ts`, `docs/runbooks/credential-compromise.md`, `docs/runbooks/key-rotation.md`, `docs/runbooks/odoo-outage.md`, `docs/runbooks/rollback.md`, `docs/runbooks/user-deletion.md`
 
 **Interfaces:**
+
 - `disconnect(userId): Promise<void>` atomically deactivates connection, removes ciphertext, revokes grants/tokens, and invalidates intents.
 - `reencryptConnections(batchSize, cursor): Promise<{processed,nextCursor}>` decrypts previous versions and writes current version without exposing plaintext outside function scope.
 - Scheduled cleanup removes expired codes, tokens, assertions, intents, idempotency records, and audit rows per documented retention.
@@ -216,10 +236,12 @@
 ### Task 11: Full local integration and security acceptance suite
 
 **Files:**
+
 - Create: `test/mock-odoo-worker.ts`, `test/integration/oauth-mcp.test.ts`, `test/integration/security.test.ts`, `test/integration/disconnect.test.ts`, `scripts/check-no-secrets.mjs`, `scripts/validate-plugin.mjs`
 - Modify: `package.json`, `vitest.config.ts`
 
 **Interfaces:**
+
 - Mock tenant supports success, revoked credential, permission denial, timeout, malformed response, rate limit, capability omission, and write-call counter.
 - `npm run test:integration` starts isolated Workers/D1 through Vitest Workers pool; no external Odoo dependency.
 
@@ -233,10 +255,12 @@
 ### Task 12: Public documentation, policies, CI, and staged-release gate
 
 **Files:**
+
 - Create: `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, `docs/architecture.md`, `docs/threat-model.md`, `docs/development.md`, `docs/deployment.md`, `docs/privacy.md`, `docs/terms.md`, `docs/support.md`, `docs/deletion.md`, `docs/submission-checklist.md`, `docs/staging-test-cases.md`, `.github/workflows/ci.yml`, `.github/workflows/deploy-staging.yml`, `.github/workflows/deploy-production.yml`, `scripts/render-public-plugin.mjs`
 - Modify: `plugins/odoo-connect/.codex-plugin/plugin.json`, `plugins/odoo-connect/.mcp.json`, `plugins/odoo-connect/skills/odoo-connect/SKILL.md`
 
 **Interfaces:**
+
 - CI runs format, lint, type generation check, typecheck, unit/contract/integration tests, dependency audit, plugin validation, secret scan, and Wrangler dry run.
 - Staging workflow requires configured environment, applies staging migrations before deploy, then runs smoke tests. Production workflow requires protected environment and successful staging artifact; it remains manual and unused until authorized.
 
