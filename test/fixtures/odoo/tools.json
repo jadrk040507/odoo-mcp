@@ -1,0 +1,14 @@
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "tools": [
+      { "name": "get_models" },
+      { "name": "get_fields" },
+      { "name": "search" },
+      { "name": "read_group" },
+      { "name": "create_records" },
+      { "name": "update_records" }
+    ]
+  }
+}

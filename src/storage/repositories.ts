@@ -43,6 +43,36 @@ export class ConnectionRepository {
     ]);
   }
 
+  async replaceActive(input: CreateConnection): Promise<void> {
+    await this.db.batch([
+      this.db
+        .prepare("INSERT OR IGNORE INTO users (id, created_at) VALUES (?, ?)")
+        .bind(input.userId, input.now),
+      this.db
+        .prepare(
+          "UPDATE connections SET active = 0, updated_at = ? WHERE user_id = ? AND active = 1",
+        )
+        .bind(input.now, input.userId),
+      this.db
+        .prepare(
+          `INSERT INTO connections
+           (id, user_id, tenant_origin, tenant_hash, credential_ciphertext, credential_nonce, key_version, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .bind(
+          input.id,
+          input.userId,
+          input.tenantOrigin,
+          input.tenantHash,
+          input.ciphertext,
+          input.nonce,
+          input.keyVersion,
+          input.now,
+          input.now,
+        ),
+    ]);
+  }
+
   findActiveByUser(userId: string): Promise<ConnectionRow | null> {
     return this.db
       .prepare("SELECT * FROM connections WHERE user_id = ? AND active = 1")

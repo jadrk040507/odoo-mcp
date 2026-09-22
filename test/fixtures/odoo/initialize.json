@@ -1,0 +1,9 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": "2026-07-28",
+    "capabilities": { "tools": {} },
+    "serverInfo": { "name": "Odoo", "version": "19.4" }
+  }
+}
