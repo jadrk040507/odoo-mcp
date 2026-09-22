@@ -1,0 +1,31 @@
+{
+  "name": "odoo-connect",
+  "version": "0.1.0",
+  "description": "Connect ChatGPT and Codex to Odoo SaaS through a safe OAuth-protected MCP gateway.",
+  "author": {
+    "name": "odoo-plugin",
+    "email": "jadrk040507@gmail.com",
+    "url": "https://github.com/jadrk040507"
+  },
+  "homepage": "https://github.com/jadrk040507/odoo-connect-plugin",
+  "repository": "https://github.com/jadrk040507/odoo-connect-plugin",
+  "license": "Apache-2.0",
+  "keywords": ["odoo", "mcp", "crm", "sales", "invoicing"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Odoo Connect for ChatGPT & Codex",
+    "shortDescription": "Use Odoo SaaS safely from ChatGPT and Codex.",
+    "longDescription": "Connect one Odoo SaaS tenant and use curated contact, CRM, sales, and invoicing workflows through an OAuth-protected MCP gateway.",
+    "developerName": "odoo-plugin",
+    "category": "Productivity",
+    "capabilities": ["Interactive", "Write"],
+    "defaultPrompt": [
+      "Find my newest CRM opportunities.",
+      "Show overdue customer invoices.",
+      "Preview an update to an Odoo contact."
+    ],
+    "brandColor": "#714B67",
+    "composerIcon": "./assets/icon.svg",
+    "logo": "./assets/icon.svg"
+  }
+}

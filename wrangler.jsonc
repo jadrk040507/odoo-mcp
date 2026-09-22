@@ -1,0 +1,57 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "odoo-connect",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-21",
+  "compatibility_flags": ["global_fetch_strictly_public"],
+  "vars": {
+    "PUBLIC_ORIGIN": "http://127.0.0.1:8787",
+    "ENVIRONMENT": "local",
+    "ODOO_TIMEOUT_MS": "10000",
+  },
+  "secrets": {
+    "required": ["CREDENTIAL_KEY_V1", "TOKEN_HASH_PEPPER", "AUDIT_HASH_KEY"],
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "odoo-connect-local",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "observability": {
+    "enabled": true,
+    "logs": { "head_sampling_rate": 1 },
+    "traces": { "enabled": true, "head_sampling_rate": 0.01 },
+  },
+  "env": {
+    "staging": {
+      "name": "odoo-connect-staging",
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "ODOO_TIMEOUT_MS": "10000",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "odoo-connect-staging",
+          "migrations_dir": "migrations",
+        },
+      ],
+    },
+    "production": {
+      "name": "odoo-connect-production",
+      "vars": {
+        "ENVIRONMENT": "production",
+        "ODOO_TIMEOUT_MS": "10000",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "odoo-connect-production",
+          "migrations_dir": "migrations",
+        },
+      ],
+    },
+  },
+}

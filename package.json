@@ -1,0 +1,40 @@
+{
+  "name": "odoo-connect-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:unit": "vitest run test",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format:check": "prettier --check package.json tsconfig.json vitest.config.ts eslint.config.js wrangler.jsonc src test plugins",
+    "cf:typegen": "wrangler types",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
+    "agents": "^0.24.0",
+    "jose": "^6.2.12",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
+    "@cloudflare/workers-types": "^5.20260922.1",
+    "@types/node": "^24.13.6",
+    "eslint": "^10.11.0",
+    "prettier": "^3.9.8",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.70.1",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.136.1"
+  },
+  "overrides": {
+    "sharp": "^0.35.4"
+  }
+}

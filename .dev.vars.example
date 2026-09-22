@@ -1,0 +1,4 @@
+CREDENTIAL_KEY_V1=base64url-encoded-32-byte-development-key
+TOKEN_HASH_PEPPER=development-only-random-secret
+AUDIT_HASH_KEY=development-only-random-secret
+
